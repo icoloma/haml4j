@@ -1,22 +1,23 @@
 package org.haml4j.model;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
 
 /**
  * Parsed file contents
  * @author Nacho
  *
  */
-public class HamlParsedFile {
+public class Document {
 
 	/** the file doctype */
 	private String doctype;
 	
-	/** the lines */
-	private final List<ParsedTag> tags = Lists.newArrayList();
+	/** the HTML node */
+	private TagNode node;
 
+	public Document() {
+		node = new TagNode("html");
+	}
+	
 	public String getDoctype() {
 		return doctype;
 	}
@@ -24,8 +25,9 @@ public class HamlParsedFile {
 	public void setDoctype(String doctype) {
 		this.doctype = doctype;
 	}
-	
-	public void addTag(ParsedTag tag) {
-		tags.add(tag);
+
+	public TagNode getNode() {
+		return node;
 	}
+	
 }

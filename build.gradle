@@ -16,13 +16,10 @@ dependencies {
 					"org.apache.geronimo.specs:geronimo-servlet_2.4_spec:1.1.1"
 					
 	compile			"com.google.guava:guava:r05",
-					"org.parboiled:parboiled-core:1.0.0",
-					"org.parboiled:parboiled-scala:1.0.0",
 					"org.slf4j:slf4j-api:1.6.1"
 	
 	testCompile		"ch.qos.logback:logback-classic:0.9.24",
 					"junit:junit:4.5",
-					"org.scalatest:scalatest_2.9.0:1.6.1",
 					"org.springframework:spring-test:3.0.0.RELEASE"
 	
 }
