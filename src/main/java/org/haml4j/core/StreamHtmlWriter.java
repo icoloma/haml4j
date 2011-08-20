@@ -15,7 +15,6 @@
  */
 package org.haml4j.core;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletResponse;
@@ -29,13 +28,13 @@ public class StreamHtmlWriter extends AbstractHtmlWriter {
 	private PrintWriter delegate;
 	
 	@Override
-	public StreamHtmlWriter print(CharSequence s) throws IOException {
+	public StreamHtmlWriter print(CharSequence s){
 		delegate.print(s);
 		return this;
 	}
 
 	@Override
-	public void flush() throws IOException {
+	public void flush(){
 		delegate.flush();
 	}
 

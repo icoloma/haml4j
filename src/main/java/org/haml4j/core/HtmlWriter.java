@@ -30,33 +30,33 @@ public interface HtmlWriter {
 	 * @param value value of the attribute. If null, nothing will be written
 	 * @return this same instance
 	 */
-	public HtmlWriter attr(String name, Object value) throws IOException;
+	public HtmlWriter attr(String name, Object value);
 
 	/**
-	 * Prints a tag boolean attribute. These attributes just have to be present, with no actual value
+	 * Prints a boolean attribute. These attributes just have to be present, with no actual value
 	 * @param name name of the attribute
 	 * @return this same instance
 	 */
-	public HtmlWriter attr(String name) throws IOException;
+	public HtmlWriter attr(String name);
 	
 	/**
 	 * Print a String
 	 * @param s the text to be written
 	 * @return this same instance
 	 */
-    public HtmlWriter print(CharSequence s) throws IOException;
+    public HtmlWriter print(CharSequence s);
     
     /**
      * Print ant Object, invoking its toString() method
      * @param o the object to be written
      * @return this same instance
      */
-    public HtmlWriter print(Object o) throws IOException;
+    public HtmlWriter print(Object o);
 
 	/**
 	 * Flush the output contents
 	 */
-	public void flush() throws IOException;
+	public void flush();
 	
 	/**
 	 * Start an HTML tag.
@@ -68,7 +68,7 @@ public interface HtmlWriter {
 	 * @throws IllegalArgumentException if the number of attribute names and values do 
 	 * not match.  
 	 */
-	public HtmlWriter tag(String tag, Object... attributes) throws IOException;
+	public HtmlWriter tag(String tag, Object... attributes);
 
 	/**
 	 * Prints a closing tag like &lt;/a>
@@ -76,6 +76,22 @@ public interface HtmlWriter {
 	 * @return
 	 * @throws IOException 
 	 */
-	public HtmlWriter close(String tag) throws IOException;
+	public HtmlWriter close(String tag);
 	
+	/**
+	 * Starts a tag. For example, invoking open("div") will print "<div"
+	 */
+	public HtmlWriter open(String tagName);
+
+	/**
+	 * Closes an open tag by printing '>'
+	 */
+	public HtmlWriter close();
+	
+	/**
+	 * Closes a bodyless tag. Depending on the output it may print 
+	 * "/>" (XML) or ">" (HTML)
+	 */
+	public HtmlWriter closeEmpty();
+
 }

@@ -5,7 +5,7 @@ package org.haml4j.exception;
  * @author icoloma
  *
  */
-public class InconsistentIndentationException extends HamlParsingException {
+public class InconsistentIndentationException extends ParseException {
 
 	public InconsistentIndentationException(String message) {
 		super(message);

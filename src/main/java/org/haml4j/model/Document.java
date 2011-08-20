@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import org.haml4j.core.Context;
+
 
 /**
  * Parsed file contents
@@ -12,7 +14,7 @@ public class Document {
 	private String doctype;
 	
 	/** the HTML node */
-	private TagNode node;
+	private Node node;
 
 	public Document() {
 		node = new TagNode("html");
@@ -22,12 +24,21 @@ public class Document {
 		return doctype;
 	}
 
-	public void setDoctype(String doctype) {
-		this.doctype = doctype;
+	public Node getRootNode() {
+		return node;
 	}
 
-	public TagNode getNode() {
-		return node;
+	public void addDoctype(String newDoctype) {
+		doctype = doctype == null? newDoctype : doctype + newDoctype;
+	}
+	
+	/**
+	 * Render this document to the provided context
+	 * @param context
+	 */
+	public void render(Context context) {
+		context.getWriter().print(doctype);
+		node.render(context);
 	}
 	
 }

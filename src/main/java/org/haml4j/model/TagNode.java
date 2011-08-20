@@ -1,8 +1,8 @@
 package org.haml4j.model;
 
-import java.util.List;
+import org.haml4j.core.Context;
+import org.haml4j.core.HtmlWriter;
 
-import com.google.common.collect.Lists;
 
 /**
  * An HTML tag
@@ -20,16 +20,8 @@ public class TagNode extends AbstractNode {
 	/** tag class */
 	private String cssClass;
 	
-	/** the child nodes */
-	private List<Node> children = Lists.newArrayList();
-	
 	public TagNode(String tagName) {
 		this.tagName = tagName;
-	}
-	
-	public void addChild(Node node) {
-		children.add(node);
-		node.setParent(this);
 	}
 
 	public String getId() {
@@ -48,16 +40,23 @@ public class TagNode extends AbstractNode {
 		this.cssClass = cssClass;
 	}
 
-	public List<Node> getChildren() {
-		return children;
-	}
-
 	public String getTagName() {
 		return tagName;
 	}
 
 	public void setTagName(String tagName) {
 		this.tagName = tagName;
+	}
+
+	@Override
+	public void render(Context context) {
+		HtmlWriter writer = context.getWriter();
+		writer.open(tagName);
+		writer.close();
+		for (Node node : getChildren()) {
+			node.render(context);
+		}
+		writer.close(tagName);
 	}
 	
 }

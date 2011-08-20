@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import org.haml4j.core.Context;
+
 /**
  * A script piece that should be executed and included in the output
  * @author icoloma
@@ -37,6 +39,14 @@ public class ScriptNode extends AbstractNode {
 	@Override
 	public void addChild(Node node) {
 		throw new UnsupportedOperationException("Script nodes should not have any children");
+	}
+
+	@Override
+	public void render(Context context) {
+		Object o = context.execute(contents);
+		if (printOutput) {
+			context.getWriter().print(o);
+		}
 	}
 
 }

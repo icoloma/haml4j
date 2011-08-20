@@ -1,15 +1,20 @@
 package org.haml4j.parser;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.haml4j.exception.HamlParsingException;
 import org.haml4j.exception.IllegalNestingException;
 import org.haml4j.exception.InconsistentIndentationException;
+import org.haml4j.exception.ParseException;
+import org.haml4j.exception.SyntaxException;
+import org.haml4j.model.CommentNode;
 import org.haml4j.model.Document;
 import org.haml4j.model.IfNode;
 import org.haml4j.model.Node;
+import org.haml4j.model.PlainNode;
 import org.haml4j.model.ScriptNode;
+import org.haml4j.model.TagNode;
 
 
 /**
@@ -35,11 +40,11 @@ public class Parser implements ParserConstants {
 	/**
 	 * Parse a HAML document
 	 */
-	public Document parseHamlDocument(String input) {
+	public Document parse(String input) {
 		InputLines lines = new InputLines(input);
 		try {
 			document = new Document();
-			currentNode = document.getNode();
+			currentNode = document.getRootNode();
 			currentIndentLevel = -1;
 			String line = lines.nextLine();
 			if (lines.getCurrentIndentation() != 0) {
@@ -50,7 +55,7 @@ public class Parser implements ParserConstants {
 				line = lines.nextLine();
 			}
 			return document;
-		} catch (HamlParsingException e) {
+		} catch (ParseException e) {
 			e.setLine(lines.getRow());
 			throw e;
 		}
@@ -86,10 +91,58 @@ public class Parser implements ParserConstants {
 			}
 			addNode(lineIndent, new ScriptNode(printOutput, handle == '~', line.substring(1)));
 			
-		} else if (line.startsWith(DOCTYPE_)) {
-			String 
+		} else if (line.startsWith(DOCTYPE_HANDLE)) {
+			document.addDoctype(doctypeHandler.processDocType(line.substring(3)));
+		} else if (handle == COMMENT) {
+			String[] parts = SharedUtils.balance(line, '[', ']');
+			addNode(lineIndent, new CommentNode(parts[0], parts[1]));
+		} else if (handle == DIV_CLASS) {
+			addNode(lineIndent, parseDiv(line));
+		} else {
+			addNode(lineIndent, new PlainNode(line));
 		}
 		
+	}
+	
+	private TagNode parseDiv(String line) {
+		return parseTag("%div" + line);
+	}
+	
+	private TagNode parseTag(String line) {
+		Matcher matcher = Pattern.compile("%([-:\\w]+)([-:\\w\\.\\#]*)(.*)").matcher(line);
+		if (!matcher.matches()) {
+			throw new SyntaxException("Invalid tag: \"" + line + "\"");
+		}
+		String tagName = matcher.group(1);
+		String attributes = matcher.group(2);
+		String rest = matcher.group(3);
+		if (!Pattern.matches("[\\.#](\\.|#|\\z)", attributes)) {
+			throw new SyntaxException("Illegal element: classes and ids must have values.");
+		}
+		char c = attributes.charAt(0);
+		if (c == '(') {
+			/*
+	          new_attributes_hash, rest, last_line = 
+	          attributes_hashes[:new] = new_attributes_hash
+			attributes = parse_new_attributes(rest)
+			*/
+		} else if (c == '[') {
+	         // object_ref, rest = balance(rest, ?[, ?])
+		} else {
+			throw new SyntaxException("Unknown char: '" + c + "'");
+		}
+		if (rest.length() > 0) {
+			matcher = Pattern.compile("(<>|><|[><])?([=\\/\\~&!])?(.*)?").matcher(rest);
+			String nukeWhitespace = matcher.group(1);
+			boolean nukeOuterWhitespace = nukeWhitespace.indexOf('>') != -1;
+			boolean nukeInnerWhitespace = nukeWhitespace.indexOf('<') != -1;
+		}
+		return new TagNode(tagName);
+	}
+	
+	private Map<String, String> parseNewAttributes(String line) {
+		Matcher matcher = Pattern.compile("\\(\\s*").matcher(line);
+		return null;
 	}
 
 	private void addNode(int newIndentLevel, Node node) {
@@ -109,6 +162,10 @@ public class Parser implements ParserConstants {
 			currentNode.getParent().addChild(node);
 		}
 		currentNode = node;
+	}
+
+	public void setDoctypeHandler(DoctypeHandler doctypeHandler) {
+		this.doctypeHandler = doctypeHandler;
 	}
 
 }

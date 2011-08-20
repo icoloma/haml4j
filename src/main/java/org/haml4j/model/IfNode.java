@@ -17,14 +17,11 @@ public class IfNode extends AbstractNode {
 	/** the list where processed child nodes will be appended to */
 	private List<Node> activeChildren;
 	
-	/** the if-true nodes */
-	private List<Node> ifChildren = Lists.newArrayList();
-	
 	/** the else nodes */
 	private List<Node> elseChildren;
 	
 	public IfNode(String clause) {
-		this.activeChildren = ifChildren;
+		this.activeChildren = getChildren();
 		this.clause = clause;
 	}
 	

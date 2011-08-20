@@ -15,8 +15,6 @@
  */
 package org.haml4j.core;
 
-import java.io.IOException;
-
 import com.google.common.base.Joiner;
 
 /**
@@ -26,7 +24,22 @@ import com.google.common.base.Joiner;
 public abstract class AbstractHtmlWriter implements HtmlWriter {
 
 	@Override
-	public HtmlWriter attr(String name, Object value) throws IOException {
+	public HtmlWriter open(String tagName) {
+		return print('<').print(tagName);
+	}
+	
+	@Override
+	public HtmlWriter close() {
+		return print('>');
+	}
+	
+	@Override
+	public HtmlWriter closeEmpty() {
+		return print('>');
+	}
+	
+	@Override
+	public HtmlWriter attr(String name, Object value) {
 		if (value != null) {
 			print(" ");
 			print(name);
@@ -38,21 +51,18 @@ public abstract class AbstractHtmlWriter implements HtmlWriter {
 	}
 	
 	@Override
-	public HtmlWriter attr(String name) throws IOException {
-		print(" ");
-		print(name);
-		return this;
+	public HtmlWriter attr(String name) {
+		return print(" ").print(name);
 	}
 
 	@Override
-	public HtmlWriter print(Object o) throws IOException {
+	public HtmlWriter print(Object o) {
 		return print(o == null? "null" : o.toString());
 	}
 
 	@Override
-	public HtmlWriter tag(String tag, Object... attributes) throws IOException {
-		print("<");
-		print(tag);
+	public HtmlWriter tag(String tag, Object... attributes) {
+		open(tag);
 		if (attributes.length % 2 > 0) {
 			throw new IllegalArgumentException("The number of attribute names and values should be even: " + Joiner.on(", ").join(attributes));
 		}
@@ -61,14 +71,11 @@ public abstract class AbstractHtmlWriter implements HtmlWriter {
 			attr((String)attributes[i], attributes[i + 1]);
 			i += 2;
 		}
-		return print(">");
+		return close();
 	}
 
 	@Override
-	public HtmlWriter close(String tag) throws IOException {
-		print("</");
-		print(tag);
-		print(">");
-		return this;
+	public HtmlWriter close(String tag) {
+		return print("</").print(tag).print(">");
 	}
 }

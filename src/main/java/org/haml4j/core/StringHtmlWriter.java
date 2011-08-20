@@ -1,6 +1,5 @@
 package org.haml4j.core;
 
-import java.io.IOException;
 
 /**
  * Writes HTML to a String
@@ -17,13 +16,13 @@ public class StringHtmlWriter extends AbstractHtmlWriter {
 	}
 	
 	@Override
-	public HtmlWriter print(CharSequence s) throws IOException {
+	public HtmlWriter print(CharSequence s) {
 		delegate.append(s);
 		return this;
 	}
 
 	@Override
-	public void flush() throws IOException {
+	public void flush() {
 		// NO-OP
 	}
 	
@@ -31,15 +30,15 @@ public class StringHtmlWriter extends AbstractHtmlWriter {
 	 * Clean the String buffer
 	 */
 	public void reset() {
-		allocate(1024);
+		reset(1024);
 	}
 
 	/**
 	 * Reset the buffer, allocating the expected size
 	 * @param expectedSize
 	 */
-	public void allocate(int expectedSize) {
-		delegate = new StringBuilder(1024);
+	public void reset(int expectedSize) {
+		delegate = new StringBuilder(expectedSize);
 	}
 	
 	/**

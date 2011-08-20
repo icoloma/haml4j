@@ -4,16 +4,16 @@ import java.util.regex.Pattern;
 
 public interface ParserConstants {
 
-    /** Designates an XHTML/XML element */
+    /** Designates an XHTML/XML element (IMPLEMENTED) */
     public static final char ELEMENT = '%';
 
-    /** Designates a `<div>` element with the given class */
+    /** Designates a `<div>` element with the given class (IMPLEMENTED) */
     public static final char DIV_CLASS = '.';
 
     /** Designates a `<div>` element with the given id */
     public static final char DIV_ID = '#';
 
-    /** Designates an XHTML/XML comment */
+    /** Designates an XHTML/XML comment (IMPLEMENTED) */
     public static final char COMMENT = '/';
 
     /** Designates an XHTML doctype or script that is never HTML-escaped */
@@ -43,16 +43,16 @@ public interface ParserConstants {
     /** Designates a non-parsed line. Not actually a character */
     public static final int PLAIN_TEXT = -1;
     
-    /** The value of the character that designates that a line is part of a multiline string. */
+    /** The value of the character that designates that a line is part of a multiline string. (IMPLEMENTED) */
     public static final int MULTILINE_CHAR_VALUE = '|';
 
-    /** The starts of a doctype expression */
+    /** The starts of a doctype expression (IMPLEMENTED) */
     public static final String DOCTYPE_HANDLE = "!!!";
     
-    /** Reserved word: if */
+    /** Reserved word: if (IMPLEMENTED) */
     public static final Pattern RW_IF = Pattern.compile("-\\s*if\\s+");
     
-    /** Reserved word: else */
+    /** Reserved word: else (IMPLEMENTED) */
     public static final Pattern RW_ELSE = Pattern.compile("-\\s*else\\s+");
     
     /** TBD: elif, when, case, ensure */

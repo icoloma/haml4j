@@ -1,15 +1,15 @@
 package org.haml4j.exception;
 
-public class HamlParsingException extends RuntimeException {
+public class ParseException extends RuntimeException {
 
 	/** the parsing line number */
 	private int line = -1;
 	
-	public HamlParsingException(String message, Throwable cause) {
+	public ParseException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public HamlParsingException(String message) {
+	public ParseException(String message) {
 		super(message);
 	}
 	

@@ -1,14 +1,13 @@
 package org.haml4j.parser;
 
-import org.haml4j.model.Document;
 
 public interface DoctypeHandler {
 
 	/** 
-	 * Process a doctype line and introduce its values into the Document instance
+	 * Process a doctype line and produce the expected output
 	 * @param doctype the doctype line, having removed the "!!!" prefix
-	 * @param document the document where to inject its values
+	 * @return the doctype string
 	 */
-	public void processDocType(String doctype, Document document);
+	public String processDocType(String doctype);
 	
 }

@@ -1,6 +1,11 @@
 package org.haml4j.exception;
 
-public class IllegalNestingException  extends HamlParsingException {
+/**
+ * Triggered by an illegal nesting of tags 
+ * @author icoloma
+ *
+ */
+public class IllegalNestingException  extends ParseException {
 
 	public IllegalNestingException(String message) {
 		super(message);
