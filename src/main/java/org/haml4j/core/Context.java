@@ -21,4 +21,25 @@ public interface Context {
 	 */
 	public Object execute(String scriptlet);
 	
+	/**
+	 * Increase the indentation level in 1. Returns the current indentation level (after addition)
+	 */
+	public int pushIndent();
+	
+	/**
+	 * Decrease the indentation level in 1. Returns the current de indentation level (after substraction)
+	 */
+	public int popIndent();
+	
+	/**
+	 * Prints a newline (while prettyprinting)
+	 */
+	public void printNewLine();
+	
+	/**
+	 * Return true if newlines and indentation tabs should be printed
+	 * @return
+	 */
+	public boolean isPretty();
+	
 }

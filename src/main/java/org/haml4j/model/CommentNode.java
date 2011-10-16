@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import org.haml4j.core.Context;
+import org.haml4j.core.HtmlWriter;
 import org.haml4j.exception.IllegalNestingException;
 
 import com.google.common.base.Strings;
@@ -28,6 +30,14 @@ public class CommentNode extends AbstractNode {
 			throw new IllegalNestingException("Illegal nesting: nesting within a tag that already has content is illegal.");
 		}
 		super.addChild(node);
+	}
+	
+	@Override
+	public void render(Context context) {
+		HtmlWriter writer = context.getWriter();
+		writer.print("<!--");
+		renderChildren(context);
+		writer.print("-->");
 	}
 	
 }

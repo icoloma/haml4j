@@ -1,7 +1,13 @@
 package org.haml4j.model;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.haml4j.core.Context;
 import org.haml4j.core.HtmlWriter;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Maps;
 
 
 /**
@@ -20,10 +26,28 @@ public class TagNode extends AbstractNode {
 	/** tag class */
 	private String cssClass;
 	
+	/** the object_ref, if any */
+	private ObjectReference objectReference;
+	
+	/** the attributes of this node */
+	private Map<String, Attribute> attributes = Maps.newLinkedHashMap();
+	
 	public TagNode(String tagName) {
 		this.tagName = tagName;
 	}
 
+	@Override
+	public void render(Context context) {
+		if (objectReference != null) {
+			throw new UnsupportedOperationException();
+		}
+		HtmlWriter writer = context.getWriter();
+		writer.open(tagName);
+		writer.close();
+		renderChildren(context);
+		writer.close(tagName);
+	}
+	
 	public String getId() {
 		return id;
 	}
@@ -47,16 +71,47 @@ public class TagNode extends AbstractNode {
 	public void setTagName(String tagName) {
 		this.tagName = tagName;
 	}
-
-	@Override
-	public void render(Context context) {
-		HtmlWriter writer = context.getWriter();
-		writer.open(tagName);
-		writer.close();
-		for (Node node : getChildren()) {
-			node.render(context);
-		}
-		writer.close(tagName);
-	}
 	
+	public void setObjectRef(String objectRef) {
+		if (objectRef == null) {
+			this.objectReference = null;
+		} else {
+			Iterator<String> parts = Splitter.on(',').trimResults().split(objectRef).iterator();
+			this.objectReference = new ObjectReference(parts.hasNext()? parts.next() : null, parts.hasNext()? parts.next() : null);
+		}
+	}
+
+	/**
+	 * If set, this is a reference to an Object that will provide the tag attributes in real time.
+	 * See <a href="http://haml-lang.com/docs/yardoc/file.HAML_REFERENCE.html#object_reference_">object_reference</a>
+	 * @author icoloma
+	 *
+	 */
+	public static class ObjectReference {
+
+		/** the name to search for the object in the Context */
+		private String name;
+		
+		/** the prefix to use for the id and class attributes, if any */
+		private String prefix;
+
+		public ObjectReference(String name, String prefix) {
+			this.name = name;
+			this.prefix = prefix;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getPrefix() {
+			return prefix;
+		}
+
+	}
+
+	public Map<String, Attribute> getAttributes() {
+		return attributes;
+	}
+
 }

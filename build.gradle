@@ -13,13 +13,17 @@ configurations {
 dependencies {
 
 	providedCompile	"org.apache.geronimo.specs:geronimo-jsp_2.1_spec:1.0.1",
-					"org.apache.geronimo.specs:geronimo-servlet_2.4_spec:1.1.1"
+					"org.apache.geronimo.specs:geronimo-servlet_3.0_spec:1.0"
 					
-	compile			"com.google.guava:guava:r05",
+	compile			"com.google.guava:guava:10.0.1",
+					"org.javatuples:javatuples:1.1",
 					"org.slf4j:slf4j-api:1.6.1"
 	
 	testCompile		"ch.qos.logback:logback-classic:0.9.24",
 					"junit:junit:4.5",
-					"org.springframework:spring-test:3.0.0.RELEASE"
+					"org.springframework:spring-core:3.0.0.RELEASE",
+					"org.springframework:spring-test:3.0.0.RELEASE",
+					"org.slf4j:jcl-over-slf4j:1.6.1",
+					"org.codehaus.groovy:groovy-all:1.9.0-beta-4"
 	
 }

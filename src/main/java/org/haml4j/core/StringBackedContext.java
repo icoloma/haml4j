@@ -7,18 +7,20 @@ package org.haml4j.core;
  */
 public class StringBackedContext extends AbstractContext {
 
-	private StringHtmlWriter writer = new StringHtmlWriter();
-
+	public StringBackedContext() {
+		super(new StringHtmlWriter());
+	}
+	
 	@Override
-	public HtmlWriter getWriter() {
-		return writer;
+	public StringHtmlWriter getWriter() {
+		return (StringHtmlWriter) super.getWriter();
 	}
 	
 	/** 
 	 * Clean the String buffer
 	 */
 	public void reset() {
-		writer.reset();
+		getWriter().reset();
 	}
 	
 	/**
@@ -26,14 +28,14 @@ public class StringBackedContext extends AbstractContext {
 	 * @param expectedSize
 	 */
 	public void reset(int expectedSize) {
-		writer.reset(expectedSize);
+		getWriter().reset(expectedSize);
 	}
 
 	/**
 	 * @return the contents printed to this context
 	 */
 	public String getContents() {
-		return writer.getContents();
+		return getWriter().getContents();
 	}
 
 	
