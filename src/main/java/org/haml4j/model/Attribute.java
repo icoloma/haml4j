@@ -1,6 +1,6 @@
 package org.haml4j.model;
 
-import org.haml4j.el.ExpressionLanguageEngine;
+import org.haml4j.script.ExpressionLanguageEngine;
 
 /**
  * A tag attribute

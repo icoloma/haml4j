@@ -14,7 +14,7 @@
 	<classpathentry kind="lib" path="src/test/genlib/geronimo-servlet_3.0_spec-1.0.jar" sourcepath="src/test/genlib/geronimo-servlet_3.0_spec-1.0-sources.jar"/>
 	<classpathentry kind="lib" path="src/test/genlib/spring-core-3.0.0.RELEASE.jar"/>
 	<classpathentry kind="lib" path="src/test/genlib/jcl-over-slf4j-1.6.1.jar"/>
-	<classpathentry kind="lib" path="src/test/genlib/groovy-all-1.9.0-beta-4.jar"/>
+	<classpathentry kind="lib" path="src/test/genlib/groovy-all-1.9.0-beta-4.jar" sourcepath="src/test/genlib/groovy-all-1.9.0-beta-4-sources.jar"/>
 	<classpathentry kind="lib" path="src/test/genlib/guava-10.0.1.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>

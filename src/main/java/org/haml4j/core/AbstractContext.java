@@ -1,10 +1,10 @@
 package org.haml4j.core;
 
-import org.haml4j.el.ExpressionLanguageEngine;
+import javax.script.ScriptEngine;
 
 public abstract class AbstractContext implements Context {
 
-	private ExpressionLanguageEngine expressionLanguageEngine;
+	private ScriptEngine scriptEngine;
 	
 	/** true to print newlines and indentation tabs */
 	private boolean pretty = true;
@@ -21,14 +21,6 @@ public abstract class AbstractContext implements Context {
 		this.writer = writer;
 	}
 
-	@Override
-	public Object execute(String scriptlet) {
-		return expressionLanguageEngine.execute(scriptlet);
-	}
-
-	public void setExpressionLanguageEngine( ExpressionLanguageEngine expressionLanguageEngine) {
-		this.expressionLanguageEngine = expressionLanguageEngine;
-	}
 	@Override
 	public int pushIndent() {
 		return currentIndentLevel++;
@@ -67,6 +59,14 @@ public abstract class AbstractContext implements Context {
 
 	public void setIndentChars(String indentChars) {
 		this.indentChars = indentChars;
+	}
+
+	public ScriptEngine getScriptEngine() {
+		return scriptEngine;
+	}
+
+	public void setScriptEngine(ScriptEngine scriptEngine) {
+		this.scriptEngine = scriptEngine;
 	}
 
 }
