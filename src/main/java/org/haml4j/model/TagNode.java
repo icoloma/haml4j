@@ -3,6 +3,8 @@ package org.haml4j.model;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.script.ScriptException;
+
 import org.haml4j.core.Context;
 import org.haml4j.core.HtmlWriter;
 
@@ -30,20 +32,26 @@ public class TagNode extends AbstractNode {
 	private ObjectReference objectReference;
 	
 	/** the attributes of this node */
-	private Map<String, Attribute> attributes = Maps.newLinkedHashMap();
+	private Map<String, Text> attributes = Maps.newLinkedHashMap();
+	
+	/** the contents of this tag */
+	private Text value;
 	
 	public TagNode(String tagName) {
 		this.tagName = tagName;
 	}
 
 	@Override
-	public void render(Context context) {
+	public void render(Context context) throws ScriptException {
 		if (objectReference != null) {
 			throw new UnsupportedOperationException();
 		}
 		HtmlWriter writer = context.getWriter();
 		writer.open(tagName);
 		writer.close();
+		if (value != null) {
+			value.render(context);
+		}
 		renderChildren(context);
 		writer.close(tagName);
 	}
@@ -110,8 +118,16 @@ public class TagNode extends AbstractNode {
 
 	}
 
-	public Map<String, Attribute> getAttributes() {
+	public Map<String, Text> getAttributes() {
 		return attributes;
+	}
+
+	public void setAttributes(Map<String, Text> attributes) {
+		this.attributes = attributes;
+	}
+
+	public void setValue(Text value) {
+		this.value = value;
 	}
 
 }

@@ -2,6 +2,10 @@ package org.haml4j.model;
 
 import java.util.List;
 
+import javax.script.ScriptException;
+
+import org.haml4j.core.Context;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -14,25 +18,27 @@ public class IfNode extends AbstractNode {
 	/** the script clause to execute */
 	private String clause;
 	
-	/** the list where processed child nodes will be appended to */
-	private List<Node> activeChildren;
+	/** the list of nodes that will be used if clause if true */
+	private List<Node> ifChildren;
 	
 	/** the else nodes */
 	private List<Node> elseChildren;
 	
 	public IfNode(String clause) {
-		this.activeChildren = getChildren();
+		this.ifChildren = getChildren();
 		this.clause = clause;
 	}
 	
-	@Override
-	public void addChild(Node node) {
-		activeChildren.add(node);
-		node.setParent(this);
+	public void startElse() {
+		this.elseChildren = Lists.newArrayList();
+		this.children = elseChildren;
 	}
 	
-	public void startElse() {
-		this.activeChildren = elseChildren = Lists.newArrayList();
+	@Override
+	public void render(Context context) throws ScriptException {
+		Boolean clauseValue = (Boolean) context.getScriptEngine().eval(clause);
+		this.children = clauseValue? ifChildren : elseChildren;
+		this.renderChildren(context);
 	}
 
 }

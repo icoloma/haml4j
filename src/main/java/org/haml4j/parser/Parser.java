@@ -18,6 +18,7 @@ import org.haml4j.model.Node;
 import org.haml4j.model.PlainNode;
 import org.haml4j.model.ScriptNode;
 import org.haml4j.model.TagNode;
+import org.haml4j.model.Text;
 import org.haml4j.util.SharedUtils;
 import org.javatuples.Pair;
 
@@ -108,6 +109,8 @@ public class Parser implements ParserConstants {
 			addNode(lineIndent, new CommentNode(parts.getValue0(), parts.getValue1()));
 		} else if (handle == DIV_CLASS || handle == DIV_ID) {
 			addNode(lineIndent, parseDiv(line));
+		} else if (handle == ELEMENT) {
+			addNode(lineIndent, parseTag(line));
 		} else {
 			addNode(lineIndent, new PlainNode(line));
 		}
@@ -119,7 +122,7 @@ public class Parser implements ParserConstants {
 	}
 	
 	private TagNode parseTag(String line) {
-		Map<String, String> attributes = null;
+		Map<String, Text> attributes = null;
 		String objectRef = null;
 		
 		Matcher matcher = Pattern.compile("%([-:\\w]+)([-:\\w\\.\\#]*)(.*)").matcher(line);
@@ -134,13 +137,13 @@ public class Parser implements ParserConstants {
 		}
 
 		while (!Strings.isNullOrEmpty(rest)) {
-			char c = sattr.charAt(0);
+			char c = rest.charAt(0);
 			if (c == '(') {
-				Pair<Map<String, String>, String> result = parseNewAttributes(rest);
+				Pair<Map<String, Text>, String> result = parseNewAttributes(rest);
 				attributes = result.getValue0();
 				rest = result.getValue1();
 			} else if (c == '{') {
-				Pair<Map<String, String>, String> result = parseOldAttributes(rest);
+				Pair<Map<String, Text>, String> result = parseOldAttributes(rest);
 				attributes = result.getValue0();
 				rest = result.getValue1();
 			} else if (c == '[') {
@@ -151,15 +154,20 @@ public class Parser implements ParserConstants {
 				break;
 			}
 		}
-		if (!Strings.isNullOrEmpty(rest)) {
-			matcher = Pattern.compile("(<>|><|[><])?([=\\/\\~&!])?(.*)?").matcher(rest);
-			String nukeWhitespace = matcher.group(1);
-			boolean nukeOuterWhitespace = nukeWhitespace.indexOf('>') != -1;
-			boolean nukeInnerWhitespace = nukeWhitespace.indexOf('<') != -1;
-		}
 		TagNode tag = new TagNode(tagName);
 		tag.setAttributes(attributes);
 		tag.setObjectRef(objectRef);
+		if (!Strings.isNullOrEmpty(rest)) {
+			matcher = Pattern.compile("(<>|><|[><])?([=\\/\\~&!])?(.*)?").matcher(rest);
+			matcher.find();
+			String nukeWhitespace = matcher.group(1);
+			boolean nukeOuterWhitespace = nukeWhitespace != null && nukeWhitespace.indexOf('>') != -1;
+			boolean nukeInnerWhitespace = nukeWhitespace != null && nukeWhitespace.indexOf('<') != -1;
+			rest = matcher.group(3);
+			if (!Strings.isNullOrEmpty(rest)) {
+				tag.setValue("=".equals(matcher.group(2))? new Text(rest, true) : new Text(rest));
+			}
+		}
 		return tag;
 		/*
 		     def tag(line)
@@ -242,11 +250,11 @@ public class Parser implements ParserConstants {
 		 */
 	}
 	
-	private Pair<Map<String, String>, String> parseNewAttributes(String line) {
+	private Pair<Map<String, Text>, String> parseNewAttributes(String line) {
 		Matcher matcher = Pattern.compile("\\(\\s* ").matcher(line);
-		Map<String, String> attributes = Maps.newHashMap();
+		Map<String, Text> attributes = Maps.newHashMap();
 		while (true) {
-			Pair<String, String> nameValue = parseNewAttribute(matcher);
+			Pair<String, Text> nameValue = parseNewAttribute(matcher);
 		}
 		/*
 
@@ -294,7 +302,7 @@ public class Parser implements ParserConstants {
 		 */
 	}
 
-	private Pair<String, String> parseNewAttribute(Matcher matcher) {
+	private Pair<String, Text> parseNewAttribute(Matcher matcher) {
 		if (!scan(matcher, "[-:\\w]+")) {
 			scan(matcher, "\\)");
 			return null;
@@ -302,13 +310,13 @@ public class Parser implements ParserConstants {
 		String name = matcher.group();
 		scan(matcher, "\\s*");
 		if (!scan(matcher, "=")) {
-			return Pair.with(name, "[:static, true]");
+			return Pair.with(name, new Text(matcher.group()));
 		}
 		if (!scan(matcher, "[\"']")) {
 			if (!scan(matcher, "(@@?|\\$)?\\w+")) {
 				return null;
 			} else {
-				return Pair.with(name, "[:dynamic, " + matcher.group());
+				return Pair.with(name, new Text(matcher.group()));
 			}
 		}
 		String quote = matcher.group();
@@ -327,15 +335,15 @@ public class Parser implements ParserConstants {
 			content.add("[:ruby, " + value);
 		}
 		if (content.size() == 1) {
-			return Pair.with(name, "[:static, " + content.get(0));
+			return Pair.with(name, new Text(content.get(0)));
 		}
 		// TODO this is wrong, but it's still soon to know what this is expected to do 
 		// return name, "[:dynamic," + '"' + content.map {|(t, v)| t == :str ? inspect_obj(v)[1...-1] : "\#{#{v}}"}.join + '"']
 		String value = Joiner.on(",").join(content);
-		return Pair.with(name, "[:dynamic, " + value);
+		return Pair.with(name, new Text(value));
 	}	
 	
-	private Pair<Map<String, String>, String> parseOldAttributes(String line) {
+	private Pair<Map<String, Text>, String> parseOldAttributes(String line) {
 		/*
 		 		     def parse_old_attributes(line)
       line = line.dup
@@ -373,7 +381,7 @@ public class Parser implements ParserConstants {
 		} else if (newIndentLevel == currentIndentLevel) {
 			currentNode.getParent().addChild(node);
 		} else {
-			while (currentIndentLevel > -1) {
+			while (currentIndentLevel > 0) {
 				currentIndentLevel--;
 				currentNode = currentNode.getParent();
 			}

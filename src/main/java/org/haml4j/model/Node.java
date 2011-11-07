@@ -1,13 +1,12 @@
 package org.haml4j.model;
 
-import org.haml4j.core.Context;
 
 /**
  * A HTML node
  * @author icoloma
  *
  */
-public interface Node {
+public interface Node extends Renderizable {
 
 	/**
 	 * @return the parent of this node
@@ -25,9 +24,5 @@ public interface Node {
 	 */
 	public void addChild(Node node);
 
-	/**
-	 * Render this node. Recursively invokes its children
-	 */
-	public void render(Context context);
 
 }

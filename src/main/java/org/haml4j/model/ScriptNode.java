@@ -43,9 +43,9 @@ public class ScriptNode extends AbstractNode {
 
 	@Override
 	public void render(Context context) {
-		Object o = context.execute(contents);
+		//Object o = context.execute(contents);
 		if (printOutput) {
-			context.getWriter().print(o);
+			context.getWriter().print(contents);
 		}
 	}
 

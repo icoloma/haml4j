@@ -2,6 +2,8 @@ package org.haml4j.model;
 
 import java.util.List;
 
+import javax.script.ScriptException;
+
 import org.haml4j.core.Context;
 
 import com.google.common.collect.Lists;
@@ -12,7 +14,7 @@ public abstract class AbstractNode implements Node {
 	private Node parent;
 	
 	/** the child nodes */
-	private List<Node> children = Lists.newArrayList();
+	protected List<Node> children = Lists.newArrayList();
 	
 	@Override
 	public void addChild(Node node) {
@@ -23,7 +25,7 @@ public abstract class AbstractNode implements Node {
 	/**
 	 * Renders the childre of this Node
 	 */
-	protected void renderChildren(Context context) {
+	protected void renderChildren(Context context) throws ScriptException {
 		context.pushIndent();
 		for (Node node : children) {
 			if (context.isPretty()) {
@@ -32,6 +34,9 @@ public abstract class AbstractNode implements Node {
 			node.render(context);
 		}
 		context.popIndent();
+		if (context.isPretty() && !children.isEmpty()) {
+			context.printNewLine();
+		}
 	}
 
 	public List<Node> getChildren() {

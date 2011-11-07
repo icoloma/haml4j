@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import javax.script.ScriptException;
+
 import org.haml4j.core.Context;
 
 
@@ -8,37 +10,42 @@ import org.haml4j.core.Context;
  * @author Nacho
  *
  */
-public class Document {
+public class Document extends AbstractNode {
 
 	/** the file doctype */
 	private String doctype;
-	
-	/** the HTML node */
-	private Node node;
 
-	public Document() {
-		node = new TagNode("html");
-	}
-	
 	public String getDoctype() {
 		return doctype;
 	}
 
 	public Node getRootNode() {
-		return node;
+		return this;
 	}
 
 	public void addDoctype(String newDoctype) {
-		doctype = doctype == null? newDoctype : doctype + newDoctype;
+		doctype = doctype == null? newDoctype : doctype + '\n' + newDoctype;
 	}
 	
 	/**
 	 * Render this document to the provided context
 	 * @param context
 	 */
-	public void render(Context context) {
-		context.getWriter().print(doctype);
-		node.render(context);
+	@Override
+	public void render(Context context) throws ScriptException {
+		if (doctype != null) {
+			context.getWriter().print(doctype);
+		}
+		renderChildren(context);
+	}
+	@Override
+	protected void renderChildren(Context context) throws ScriptException {
+		for (Node node : children) {
+			node.render(context);
+			if (context.isPretty()) {
+				context.printNewLine();
+			}
+		}
 	}
 	
 }

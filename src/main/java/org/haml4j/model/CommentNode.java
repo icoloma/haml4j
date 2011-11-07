@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import javax.script.ScriptException;
+
 import org.haml4j.core.Context;
 import org.haml4j.core.HtmlWriter;
 import org.haml4j.exception.IllegalNestingException;
@@ -33,7 +35,7 @@ public class CommentNode extends AbstractNode {
 	}
 	
 	@Override
-	public void render(Context context) {
+	public void render(Context context) throws ScriptException {
 		HtmlWriter writer = context.getWriter();
 		writer.print("<!--");
 		renderChildren(context);

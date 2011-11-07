@@ -13,6 +13,7 @@ import javax.script.SimpleBindings;
  * @author icoloma
  * 
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapBackedScriptEngineFactory {
 
 	/** the JSR223 engine manager */
@@ -21,12 +22,14 @@ public class MapBackedScriptEngineFactory {
 	/** the name of the ScriptEngine to use */
 	private String scriptEngineName;
 
-	public MapBackedScriptEngineFactory(Map<String, Object> applicationContext) {
+	public MapBackedScriptEngineFactory(Map applicationContext) {
 		engineManager = new ScriptEngineManager();
-		engineManager.setBindings(new SimpleBindings(applicationContext));
+		if (applicationContext != null) {
+			engineManager.setBindings(new SimpleBindings(applicationContext));
+		}
 	}
 
-	public ScriptEngine createEngine(Map<String, Object> requestContext) {
+	public ScriptEngine createEngine(Map requestContext) {
 		SimpleBindings requestBindings = new SimpleBindings(requestContext);
 		ScriptEngine engine = engineManager.getEngineByName(scriptEngineName);
 		engine.setBindings(requestBindings, ScriptContext.ENGINE_SCOPE);

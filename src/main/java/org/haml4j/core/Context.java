@@ -1,5 +1,7 @@
 package org.haml4j.core;
 
+import javax.script.ScriptEngine;
+
 /**
  * The context used for rendering. Encapsulates the environment 
  * where a HAML template will be rendered
@@ -34,4 +36,7 @@ public interface Context {
 	 */
 	public boolean isPretty();
 	
+	
+	public ScriptEngine getScriptEngine();
+
 }
