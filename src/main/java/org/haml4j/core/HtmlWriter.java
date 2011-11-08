@@ -24,20 +24,6 @@ import java.io.IOException;
  */
 public interface HtmlWriter {
 
-	/**
-	 * Prints a tag attribute and value, if not null
-	 * @param name name of the attribute
-	 * @param value value of the attribute. If null, nothing will be written
-	 * @return this same instance
-	 */
-	public HtmlWriter attr(String name, Object value);
-
-	/**
-	 * Prints a boolean attribute. These attributes just have to be present, with no actual value
-	 * @param name name of the attribute
-	 * @return this same instance
-	 */
-	public HtmlWriter attr(String name);
 	
 	/**
 	 * Print a String
@@ -67,7 +53,7 @@ public interface HtmlWriter {
 	 * If any of the provided attribute values is null, it will be ignored. 
 	 * @throws IllegalArgumentException if the number of attribute names and values do 
 	 * not match.  
-	 */
+	 * /
 	public HtmlWriter tag(String tag, Object... attributes);
 
 	/**

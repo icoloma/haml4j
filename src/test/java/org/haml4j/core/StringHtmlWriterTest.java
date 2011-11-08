@@ -22,32 +22,11 @@ public class StringHtmlWriterTest {
 	}
 	
 	@Test
-	public void testPrintAttribute() throws Exception {
-		writer.attr("foo", null);
-		writer.attr("bar", 4);
-		assertEquals(" bar=\"4\"", writer.getContents());
-		
-	}
-	
-	@Test
-	public void testStartTag()  throws Exception {
-		writer.tag("a");
+	public void testOpenTag()  throws Exception {
+		writer.open("a").close();
 		writer.close("a");
 		assertEquals("<a></a>", writer.getContents());
 	}
 	
-	@Test
-	public void testTagWithAttributes()  throws Exception {
-		writer.tag("img", "href", "foo", "width", 5, "baz", null);
-		assertEquals("<img href=\"foo\" width=\"5\">", writer.getContents());
-	}
-	
-	@Test
-	public void testBooleanTag()  throws Exception {
-		writer.print("<input");
-		writer.attr("required");
-		writer.print(">");
-		assertEquals("<input required>", writer.getContents());
-	}
 
 }

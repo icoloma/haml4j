@@ -51,6 +51,7 @@ public class ParserTest {
 
 				StringBackedContext context = new StringBackedContext();
 				context.setIndentChars("  ");
+				context.setAttributeWrapper('\'');
 				context.setScriptEngine(scriptEngine);
 
 				String contents = readFile(file);

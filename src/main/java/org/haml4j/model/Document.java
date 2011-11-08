@@ -24,7 +24,7 @@ public class Document extends AbstractNode {
 	}
 
 	public void addDoctype(String newDoctype) {
-		doctype = doctype == null? newDoctype : doctype + '\n' + newDoctype;
+		doctype = (doctype == null? newDoctype : doctype+ newDoctype) + '\n';
 	}
 	
 	/**

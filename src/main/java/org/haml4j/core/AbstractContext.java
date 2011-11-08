@@ -1,6 +1,9 @@
 package org.haml4j.core;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
+import org.haml4j.model.Renderizable;
 
 public abstract class AbstractContext implements Context {
 
@@ -15,6 +18,9 @@ public abstract class AbstractContext implements Context {
 	/** the character to use for indenting, defaults to '\t' */
 	private String indentChars = "\t";
 	
+	/** the character to use for attribute quotes, defaults to double quotes */
+	private char attributeWrapper = '"';
+
 	private HtmlWriter writer;
 
 	public AbstractContext(HtmlWriter writer) {
@@ -40,6 +46,19 @@ public abstract class AbstractContext implements Context {
 	}
 
 	@Override
+	public Context printAttribute(String name, Renderizable value) throws ScriptException {
+		if (value != null) {
+			writer.print(" ");
+			writer.print(name);
+			writer.print('=');
+			writer.print(attributeWrapper);
+			value.render(this);
+			writer.print(attributeWrapper);
+		}
+		return this;
+	}
+
+	@Override
 	public HtmlWriter getWriter() {
 		return writer;
 	}
@@ -61,12 +80,17 @@ public abstract class AbstractContext implements Context {
 		this.indentChars = indentChars;
 	}
 
+	@Override
 	public ScriptEngine getScriptEngine() {
 		return scriptEngine;
 	}
 
 	public void setScriptEngine(ScriptEngine scriptEngine) {
 		this.scriptEngine = scriptEngine;
+	}
+
+	public void setAttributeWrapper(char attributeWrapper) {
+		this.attributeWrapper = attributeWrapper;
 	}
 
 }

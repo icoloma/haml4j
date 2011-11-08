@@ -9,7 +9,6 @@ import org.haml4j.core.Context;
 import org.haml4j.core.HtmlWriter;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
 
 
 /**
@@ -32,7 +31,7 @@ public class TagNode extends AbstractNode {
 	private ObjectReference objectReference;
 	
 	/** the attributes of this node */
-	private Map<String, Text> attributes = Maps.newLinkedHashMap();
+	private Map<String, Text> attributes;
 	
 	/** the contents of this tag */
 	private Text value;
@@ -48,6 +47,11 @@ public class TagNode extends AbstractNode {
 		}
 		HtmlWriter writer = context.getWriter();
 		writer.open(tagName);
+		if (attributes != null) {
+			for (Map.Entry<String, Text> entry : attributes.entrySet()) {
+				context.printAttribute(entry.getKey(), entry.getValue());
+			}
+		}
 		writer.close();
 		if (value != null) {
 			value.render(context);

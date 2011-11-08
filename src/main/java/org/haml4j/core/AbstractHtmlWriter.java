@@ -15,7 +15,6 @@
  */
 package org.haml4j.core;
 
-import com.google.common.base.Joiner;
 
 /**
  * Abstract writer implementation
@@ -37,29 +36,12 @@ public abstract class AbstractHtmlWriter implements HtmlWriter {
 	public HtmlWriter closeEmpty() {
 		return print('>');
 	}
-	
-	@Override
-	public HtmlWriter attr(String name, Object value) {
-		if (value != null) {
-			print(" ");
-			print(name);
-			print("=\"");
-			print(value.toString());
-			print("\"");
-		}
-		return this;
-	}
-	
-	@Override
-	public HtmlWriter attr(String name) {
-		return print(" ").print(name);
-	}
 
 	@Override
 	public HtmlWriter print(Object o) {
 		return print(o == null? "null" : o.toString());
 	}
-
+/*
 	@Override
 	public HtmlWriter tag(String tag, Object... attributes) {
 		open(tag);
@@ -73,7 +55,7 @@ public abstract class AbstractHtmlWriter implements HtmlWriter {
 		}
 		return close();
 	}
-
+*/
 	@Override
 	public HtmlWriter close(String tag) {
 		return print("</").print(tag).print(">");

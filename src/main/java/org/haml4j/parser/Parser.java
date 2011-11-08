@@ -121,8 +121,33 @@ public class Parser implements ParserConstants {
 		return parseTag("%div" + line);
 	}
 	
+	private void parseClassAndId(Map<String, Text> attributes, String sattr) {
+		/*
+		if (Pattern.matches("[\\.#](\\.|#|\\z)", sattr)) {
+			throw new SyntaxException("Classes and ids must have values: " + line);
+		}*/
+		String className = null;
+		Matcher matcher = Pattern.compile("([#.])([-:_a-zA-Z0-9]+)").matcher(sattr);
+		while (matcher.find()) {
+			char handle = matcher.group(0).charAt(0);
+			if (handle == '.') {
+				className = className == null? matcher.group(2) : className + ' ' + matcher.group(2);						 
+			} else if (handle == '#') {
+				attributes.put("id", new Text(matcher.group(2)));
+			} else {
+				throw new IllegalStateException("We cannot get here! Don't know how to handle: " + matcher.group());
+			}
+		}
+		if (!matcher.hitEnd()) {
+			throw new SyntaxException("Wrong id/class syntax: " + sattr);
+		}
+		if (className != null) {
+			attributes.put("class", new Text(className));
+		}
+	}
+	
 	private TagNode parseTag(String line) {
-		Map<String, Text> attributes = null;
+		Map<String, Text> attributes = Maps.newLinkedHashMap();
 		String objectRef = null;
 		
 		Matcher matcher = Pattern.compile("%([-:\\w]+)([-:\\w\\.\\#]*)(.*)").matcher(line);
@@ -132,19 +157,17 @@ public class Parser implements ParserConstants {
 		String tagName = matcher.group(1);
 		String sattr = matcher.group(2);
 		String rest = matcher.group(3);
-		if (Pattern.matches("[\\.#](\\.|#|\\z)", sattr)) {
-			throw new SyntaxException("Classes and ids must have values: " + line);
-		}
+		parseClassAndId(attributes, sattr);
 
 		while (!Strings.isNullOrEmpty(rest)) {
 			char c = rest.charAt(0);
 			if (c == '(') {
 				Pair<Map<String, Text>, String> result = parseNewAttributes(rest);
-				attributes = result.getValue0();
+				//attributes = result.getValue0();
 				rest = result.getValue1();
 			} else if (c == '{') {
 				Pair<Map<String, Text>, String> result = parseOldAttributes(rest);
-				attributes = result.getValue0();
+				//attributes = result.getValue0();
 				rest = result.getValue1();
 			} else if (c == '[') {
 				Pair<String, String> result = SharedUtils.balance(rest, '[', ']');
@@ -165,6 +188,7 @@ public class Parser implements ParserConstants {
 			boolean nukeInnerWhitespace = nukeWhitespace != null && nukeWhitespace.indexOf('<') != -1;
 			rest = matcher.group(3);
 			if (!Strings.isNullOrEmpty(rest)) {
+				rest = rest.trim();
 				tag.setValue("=".equals(matcher.group(2))? new Text(rest, true) : new Text(rest));
 			}
 		}

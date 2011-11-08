@@ -1,6 +1,9 @@
 package org.haml4j.core;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
+import org.haml4j.model.Renderizable;
 
 /**
  * The context used for rendering. Encapsulates the environment 
@@ -38,5 +41,15 @@ public interface Context {
 	
 	
 	public ScriptEngine getScriptEngine();
+	
+
+	/**
+	 * Prints a tag attribute and value, if not null
+	 * @param name name of the attribute
+	 * @param value value of the attribute. If null, nothing will be written
+	 * @return this same instance
+	 * @throws ScriptException 
+	 */
+	public Context printAttribute(String name, Renderizable value) throws ScriptException;
 
 }
