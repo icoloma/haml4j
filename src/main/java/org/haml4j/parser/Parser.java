@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
 import org.haml4j.exception.IllegalNestingException;
 import org.haml4j.exception.InconsistentIndentationException;
 import org.haml4j.exception.ParseException;
@@ -55,6 +58,8 @@ public class Parser implements ParserConstants {
 	
 	/** the last indentation level */
 	private int lastIndentLevel;
+	
+	private ScriptEngine scriptEngine;
 	
 	/**
 	 * Parse a HAML document
@@ -271,36 +276,42 @@ public class Parser implements ParserConstants {
 	
 	// parse_old_attributes
 	private String parseOldAttributes(Map<String, Text> attributes, String line) {
-		while (true) {
-			try {
-				Pair<String, String> parsed = SharedUtils.balance(line, '{', '}');
-				String attributesHash = substring(parsed.getValue0(), 1, -1);
+		try {
+			while (true) {
+				try {
+					Pair<String, String> parsed = SharedUtils.balance(line, '{', '}');
+					String attributesHash = substring(parsed.getValue0(), 1, -1);
 
-				// parse_static_hash
-				StringScanner scanner = new StringScanner(attributesHash);
-				scanner.scan(SPACES);
-				while (!scanner.eos()) {
-					String key = scanner.scan(LITERAL_VALUE_REGEX);
-					String value = null;
-					if (key != null) {
-						if (scanner.scan(MAP_ATTRIBUTE_SEPARATOR) != null) {
-							value = scanner.scan(LITERAL_VALUE_REGEX);
-							scanner.scan(Pattern.compile("\\s*(?:,|$)\\s*"));
+					// parse_static_hash
+					StringScanner scanner = new StringScanner(attributesHash);
+					scanner.scan(SPACES);
+					while (!scanner.eos()) {
+						String key = scanner.scan(LITERAL_VALUE_REGEX);
+						String value = null;
+						if (key != null) {
+							if (scanner.scan(MAP_ATTRIBUTE_SEPARATOR) != null) {
+								value = scanner.scan(LITERAL_VALUE_REGEX);
+								scanner.scan(Pattern.compile("\\s*(?:,|$)\\s*"));
+							}
+							
+						}
+						if (key == null || value == null) {
+							throw new ParseException("Malformed attributes: " + line);
 						}
 						
-					}
-					if (key == null || value == null) {
-						throw new ParseException("Malformed attributes: " + line);
+						// attributes[eval(key).to_s] = eval(value).to_s
+						attributes.put(
+								key.startsWith(":")? key.substring(1) : scriptEngine.eval(key).toString(), 
+								new Text(scriptEngine.eval(value).toString()));
 					}
 					
-					// attributes[eval(key).to_s] = eval(value).to_s
-					attributes.put(key, new Text(value));
+					return parsed.getValue1();
+				} catch (UnbalancedContentsException e) {
+					line += '\n' + lines.nextLine();
 				}
-				
-				return parsed.getValue1();
-			} catch (UnbalancedContentsException e) {
-				line += '\n' + lines.nextLine();
 			}
+		} catch (ScriptException e) {
+			throw new ParseException(e.getMessage());
 		}
 	}
 
@@ -336,5 +347,9 @@ public class Parser implements ParserConstants {
 	}
 	private boolean scan(Matcher matcher, Pattern regex) {
 		return matcher.usePattern(regex).find();
+	}
+
+	public void setScriptEngine(ScriptEngine scriptEngine) {
+		this.scriptEngine = scriptEngine;
 	}
 }

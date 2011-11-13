@@ -28,5 +28,10 @@ public class StringHtmlWriterTest {
 		assertEquals("<a></a>", writer.getContents());
 	}
 	
+	@Test 
+	public void testPrintAndEscape() throws Exception {
+		writer.printAndEscape("zz'<>&\"");
+		assertEquals("zz&#039;&lt;&gt;&amp;&quot;", writer.getContents());
+	}
 
 }

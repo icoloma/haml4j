@@ -49,7 +49,17 @@ public class Text implements Renderizable {
 		HtmlWriter writer = context.getWriter();
 		ScriptEngine engine = context.getScriptEngine();
 		for (Part part : parts) {
-			writer.print(part.isEvaluate()? engine.eval(part.getText()) : part.getText());
+			String s;
+			if (part.isEvaluate()) {
+				Object o = engine.eval(part.getText());
+				if (o == null) {
+					continue;
+				}
+				s = o.toString();
+			} else {
+				s = part.getText();
+			}
+			writer.printAndEscape(s);
 		}
 	}
 	

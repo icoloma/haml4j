@@ -32,6 +32,12 @@ public interface HtmlWriter {
 	 */
     public HtmlWriter print(CharSequence s);
     
+    /** 
+     * Print a escaped String.
+     * Prints the string, escaping problematic HTML characters
+     */
+    public HtmlWriter printAndEscape(CharSequence s);
+    
     /**
      * Print ant Object, invoking its toString() method
      * @param o the object to be written
@@ -44,18 +50,6 @@ public interface HtmlWriter {
 	 */
 	public void flush();
 	
-	/**
-	 * Start an HTML tag.
-	 * This method will write the starting tag complete with all the provided attributes.
-	 * The attributes must be in pairs (name, value)
-	 * Example of use: start("a", "href", "foo.html", "class", "bar") will write 
-	 * &lt;a href="foo.html" class="bar">
-	 * If any of the provided attribute values is null, it will be ignored. 
-	 * @throws IllegalArgumentException if the number of attribute names and values do 
-	 * not match.  
-	 * /
-	public HtmlWriter tag(String tag, Object... attributes);
-
 	/**
 	 * Prints a closing tag like &lt;/a>
 	 * @param tag

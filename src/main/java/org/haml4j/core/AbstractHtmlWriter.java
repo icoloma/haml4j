@@ -22,6 +22,33 @@ package org.haml4j.core;
  */
 public abstract class AbstractHtmlWriter implements HtmlWriter {
 
+	private static String[] HTML_ESCAPE;
+	
+	static {
+		HTML_ESCAPE = new String[63];
+		HTML_ESCAPE['&'] = "&amp;";
+		HTML_ESCAPE['<'] = "&lt;";
+		HTML_ESCAPE['>'] = "&gt;";
+		HTML_ESCAPE['"'] = "&quot;";
+		HTML_ESCAPE['\''] = "&#039;";
+		HTML_ESCAPE['\n'] = "&#x000A;";
+	}
+	
+	@Override
+	public HtmlWriter printAndEscape(CharSequence s) {
+		StringBuilder b = new StringBuilder(s.length());
+		int l = s.length();
+		for (int i = 0; i < l; i++) {
+			char c = s.charAt(i);
+			if (c > HTML_ESCAPE.length || HTML_ESCAPE[c] == null) {
+				b.append(c);
+			} else {
+				b.append(HTML_ESCAPE[c]);
+			}
+		}
+		return this.print(b);
+	}
+	
 	@Override
 	public HtmlWriter open(String tagName) {
 		return print('<').print(tagName);

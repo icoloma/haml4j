@@ -71,14 +71,17 @@ Haml::Template.options[:ugly] = true
 	
 	@Before
 	public void setupParserFactory() {
-		factory = new ParserFactory();
-		factory.setDoctypeHandler(new XmlDoctypeHandler());
-		MapBackedScriptEngineFactory factory = new MapBackedScriptEngineFactory(
+		MapBackedScriptEngineFactory scriptEngineFactory = new MapBackedScriptEngineFactory(
 				null);
-		factory.setScriptEngineName("groovy");
+		scriptEngineFactory.setScriptEngineName("groovy");
 		HashMap<Object, Object> map = Maps.newHashMap();
 		map.put("item", Maps.newHashMap());
-		scriptEngine = factory.createEngine(map);
+		scriptEngine = scriptEngineFactory.createEngine(map);
+		
+		factory = new ParserFactory();
+		factory.setDoctypeHandler(new XmlDoctypeHandler());
+		factory.setScriptEngine(scriptEngine);
+		
 		requestContext = Maps.newHashMap();
 	}
 	
