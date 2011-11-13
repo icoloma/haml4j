@@ -200,45 +200,39 @@ Haml::Template.options[:ugly] = true
 		assertRender("<a href='#'>Foo</a>\n", "%a(href=\"#\") #{\"Foo\"}");
 		assertRender("<a href='#\"'></a>\n", "%a(href=\"#\\\"\")");
 	}
-	  
+	
+	
 	@Test
 	public void testHashAttributes() throws Exception {
-		def test_attrs_parsed_correctly
-	    assert_equal("<p boom=>biddly='bar =&gt; baz'></p>\n", render("%p{'boom=>biddly' => 'bar => baz'}"))
-	    assert_equal("<p foo,bar='baz, qux'></p>\n", render("%p{'foo,bar' => 'baz, qux'}"))
-	    assert_equal("<p escaped='quo&#x000A;te'></p>\n", render("%p{ :escaped => \"quo\\nte\"}"))
-	    assert_equal("<p escaped='quo4te'></p>\n", render("%p{ :escaped => \"quo\#{2 + 2}te\"}"))
-	  end
+		// falta: attributes[eval(key).to_s] = eval(value).to_s
+		// attrs_parsed_correctly
+	    assertRender("<p boom=>biddly='bar =&gt; baz'></p>\n", "%p{'boom=>biddly' => 'bar => baz'}");
+	    assertRender("<p foo,bar='baz, qux'></p>\n", "%p{'foo,bar' => 'baz, qux'}");
+	    assertRender("<p escaped='quo&#x000A;te'></p>\n", "%p{ :escaped => \"quo\\nte\"}");
+	    assertRender("<p escaped='quo4te'></p>\n", "%p{ :escaped => \"quo\\#{2 + 2}te\"}");
 
-	  def test_correct_parsing_with_brackets
-	    assert_equal("<p class='foo'>{tada} foo</p>\n", render("%p{:class => 'foo'} {tada} foo"))
-	    assert_equal("<p class='foo'>deep {nested { things }}</p>\n", render("%p{:class => 'foo'} deep {nested { things }}"))
-	    assert_equal("<p class='bar foo'>{a { d</p>\n", render("%p{{:class => 'foo'}, :class => 'bar'} {a { d"))
-	    assert_equal("<p foo='bar'>a}</p>\n", render("%p{:foo => 'bar'} a}"))
+	    // correct_parsing_with_brackets
+	    assertRender("<p class='foo'>{tada} foo</p>\n", "%p{:class => 'foo'} {tada} foo");
+	    assertRender("<p class='foo'>deep {nested { things }}</p>\n", "%p{:class => 'foo'} deep {nested { things }}");
+	    assertRender("<p class='bar foo'>{a { d</p>\n", "%p{{:class => 'foo'}, :class => 'bar'} {a { d");
+	    assertRender("<p foo='bar'>a}</p>\n", "%p{:foo => 'bar'} a}");
 	    
-	    foo = []
-	    foo[0] = Struct.new('Foo', :id).new
-	    assert_equal("<p class='struct_foo' id='struct_foo_new'>New User]</p>\n",
-	                 render("%p[foo[0]] New User]", :locals => {:foo => foo}))
-	    assert_equal("<p class='prefix_struct_foo' id='prefix_struct_foo_new'>New User]</p>\n",
-	                 render("%p[foo[0], :prefix] New User]", :locals => {:foo => foo}))
+	    assertRender("<p class='struct_foo' id='struct_foo_new'>New User]</p>\n",
+	                 "%p[foo[0]] New User]", "foo", new Object());
+	    assertRender("<p class='prefix_struct_foo' id='prefix_struct_foo_new'>New User]</p>\n",
+	                 "%p[foo[0], :prefix] New User]", "foo", new Object());
 
-	    foo[0].id = 1
-	    assert_equal("<p class='struct_foo' id='struct_foo_1'>New User]</p>\n",
-	                 render("%p[foo[0]] New User]", :locals => {:foo => foo}))
-	    assert_equal("<p class='prefix_struct_foo' id='prefix_struct_foo_1'>New User]</p>\n",
-	                 render("%p[foo[0], :prefix] New User]", :locals => {:foo => foo}))
-	  end
+	    // foo[0].id = 1
+	    assertRender("<p class='struct_foo' id='struct_foo_1'>New User]</p>\n",
+	                 "%p[foo[0]] New User]", "foo", new Object());
 	  
-	  def test_empty_attrs
-	    assert_equal("<p attr=''>empty</p>\n", render("%p{ :attr => '' } empty"))
-	    assert_equal("<p attr=''>empty</p>\n", render("%p{ :attr => x } empty", :locals => {:x => ''}))
-	  end
+	    // empty_attrs
+	    assertRender("<p attr=''>empty</p>\n", "%p{ :attr => '' } empty");
+	    assertRender("<p attr=''>empty</p>\n", "%p{ :attr => x } empty", "x", "");
 	  
-	  def test_nil_attrs
-	    assert_equal("<p>nil</p>\n", render("%p{ :attr => nil } nil"))
-	    assert_equal("<p>nil</p>\n", render("%p{ :attr => x } nil", :locals => {:x => nil}))
-	  end
+	    // nil_attrs
+	    assertRender("<p>nil</p>\n", "%p{ :attr => nil } nil");
+	    assertRender("<p>nil</p>\n", "%p{ :attr => x } nil", "x", null);
 		
 	    assertRender("<div class='atlantis' style='ugly'></div>", ".atlantis{:style => 'ugly'}");
 	    

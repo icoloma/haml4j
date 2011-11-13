@@ -56,10 +56,10 @@ public interface ParserConstants {
     public static final Pattern RW_ELSE = Pattern.compile("-\\s*else\\s+");
     
     /** The Regex that matches a literal string or symbol value */
-    public static final Pattern LITERAL_VALUE_REGEX = Pattern.compile(":(\\w+)"); //Pattern.compile(":(\\w*)|([\"'])((?![\\\\#]|\\2).|\\\\.)*\\2");
+    public static final Pattern LITERAL_VALUE_REGEX = Pattern.compile(":(\\w*)|([\"'])((?![\\\\#]|\\2).|\\\\.)*\\2");
     
     public static final Pattern MAP_ATTRIBUTE_SEPARATOR = Pattern.compile("\\s*=>\\s*");
 
-    public static final Pattern SPACES = Pattern.compile("\\s*");
+    public static final Pattern SPACES = Pattern.compile("\\s+");
     
 }

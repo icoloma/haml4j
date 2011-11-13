@@ -277,17 +277,15 @@ public class Parser implements ParserConstants {
 				String attributesHash = substring(parsed.getValue0(), 1, -1);
 
 				// parse_static_hash
-				Matcher scanner = SPACES.matcher(attributesHash);
-				scanner.find();
-				while (!scanner.hitEnd()) {
-					String key = null;
+				StringScanner scanner = new StringScanner(attributesHash);
+				scanner.scan(SPACES);
+				while (!scanner.eos()) {
+					String key = scanner.scan(LITERAL_VALUE_REGEX);
 					String value = null;
-					if (scan(scanner, LITERAL_VALUE_REGEX)) {
-						key = scanner.group();
-						;
-						if (scan(scanner, MAP_ATTRIBUTE_SEPARATOR) && scan(scanner, LITERAL_VALUE_REGEX)) {
-							value = scanner.group();
-							scan(scanner, "\\s*(?:,|$)\\s*");
+					if (key != null) {
+						if (scanner.scan(MAP_ATTRIBUTE_SEPARATOR) != null) {
+							value = scanner.scan(LITERAL_VALUE_REGEX);
+							scanner.scan(Pattern.compile("\\s*(?:,|$)\\s*"));
 						}
 						
 					}
