@@ -44,7 +44,7 @@ public class InputLines {
 		if (input.charAt(crpos - 1) != ParserConstants.MULTILINE_CHAR_VALUE) {
 			lastLine = input.substring(offset, crpos);
 			offset = crpos + 1;
-			return lastLine;
+			return lastLine.trim();
 		}
 		
 		StringBuilder sb = new StringBuilder(200);
@@ -69,7 +69,7 @@ public class InputLines {
 			row++;
 		}
 		lastLine = sb.toString();
-		return lastLine;
+		return lastLine.trim();
 	}
 
 	public int getRow() {

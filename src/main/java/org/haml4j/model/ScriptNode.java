@@ -1,5 +1,7 @@
 package org.haml4j.model;
 
+import javax.script.ScriptException;
+
 import org.haml4j.core.Context;
 
 /**
@@ -42,10 +44,10 @@ public class ScriptNode extends AbstractNode {
 	}
 
 	@Override
-	public void render(Context context) {
-		//Object o = context.execute(contents);
+	public void render(Context context) throws ScriptException {
+		Object o = context.getScriptEngine().eval(contents);
 		if (printOutput) {
-			context.getWriter().print(contents);
+			context.getWriter().print(o);
 		}
 	}
 

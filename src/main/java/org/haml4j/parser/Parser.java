@@ -1,6 +1,7 @@
 package org.haml4j.parser;
 
 import static org.haml4j.util.SharedUtils.balance;
+import static org.haml4j.util.SharedUtils.substring;
 
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.regex.Pattern;
 import org.haml4j.exception.IllegalNestingException;
 import org.haml4j.exception.InconsistentIndentationException;
 import org.haml4j.exception.ParseException;
-import org.haml4j.exception.SyntaxException;
+import org.haml4j.exception.UnbalancedContentsException;
 import org.haml4j.model.CommentNode;
 import org.haml4j.model.Document;
 import org.haml4j.model.IfNode;
@@ -31,6 +32,7 @@ import com.google.common.collect.Maps;
 /**
  * Parses a haml file.
  * This file should be a (more-or-less) port of parser.rb 
+ * This class is NOT thread-safe
  * @author Indra
  *
  */
@@ -45,24 +47,30 @@ public class Parser implements ParserConstants {
 	/** the current node we are parsing */
 	private Node currentNode;
 	
-	/** current level of indentation */
-	private int currentIndentLevel;
+	/** the file contents */
+	private InputLines lines;
+	
+	/* the current line */
+	private String line;
+	
+	/** the last indentation level */
+	private int lastIndentLevel;
 	
 	/**
 	 * Parse a HAML document
 	 */
 	public Document parse(String input) {
-		InputLines lines = new InputLines(input);
+		lines = new InputLines(input);
 		try {
 			document = new Document();
 			currentNode = document.getRootNode();
-			currentIndentLevel = -1;
-			String line = lines.nextLine();
+			lastIndentLevel = -1;
+			line = lines.nextLine();
 			if (lines.getCurrentIndentation() != 0) {
 				throw new InconsistentIndentationException("Indenting at the beginning of the document is illegal.");
 			}
 			while (line != null) {
-				parseLine(lines.getCurrentIndentation(), line.trim());
+				processLine();
 				line = lines.nextLine();
 			}
 			return document;
@@ -77,17 +85,40 @@ public class Parser implements ParserConstants {
 	 * @param lineIndent the indentation of this line
 	 * @param line the trimmed line contents
 	 */
-	private void parseLine(int lineIndent, String line) {
+	private void processLine() {
 		if (line.length() == 0 || line.startsWith(SILENT_COMMENT)) {
 			return;
 		}
 		char handle = line.charAt(0);
-		if ( (handle == SCRIPT) || (handle == FLAT_SCRIPT) || (handle == SILENT_SCRIPT) ) {
+		
+		if (handle == DIV_CLASS || handle == DIV_ID) {
+			if (line.length() > 1 && line.charAt(1) == '{') {
+				addNode(new PlainNode(line));
+			} else {
+				addNode(parseDiv(line));
+			}
+		} else if (handle == ELEMENT) {
+			addNode(parseTag(line));
+		} else if (handle == COMMENT) {
+			Pair<String, String> parts = SharedUtils.balance(substring(line, 1, -1), '[', ']');
+			addNode(new CommentNode(parts.getValue0(), parts.getValue1()));
+		} else if (handle == SANITIZE) {
+			char c = line.charAt(1);
+			if (c == '=' && line.charAt(2) == '=') {
+				addNode(new PlainNode(substring(line, 3, - 1)));
+			} else if (c == SCRIPT) {
+				addNode(new ScriptNode(true, false, substring(line, 2, -1)));
+			} else if (c == FLAT_SCRIPT) {
+				throw new UnsupportedOperationException();
+			} else {
+				addNode(new PlainNode(line));
+			}
+		} else if ( (handle == SCRIPT) || (handle == FLAT_SCRIPT) || (handle == SILENT_SCRIPT) ) {
 			boolean printOutput = handle != SILENT_SCRIPT;
 			if (!printOutput) {
 				Matcher matcher = RW_IF.matcher(line);
 				if (matcher.find()) {
-					addNode(lineIndent, new IfNode(line.substring(matcher.end())));
+					addNode(new IfNode(substring(line, 0, matcher.end())));
 					return;
 				}
 				matcher = RW_ELSE.matcher(line);
@@ -100,19 +131,15 @@ public class Parser implements ParserConstants {
 					return;
 				}
 			}
-			addNode(lineIndent, new ScriptNode(printOutput, handle == '~', line.substring(1)));
-			
+			addNode(new ScriptNode(printOutput, handle == '~', line.substring(1)));
+				
 		} else if (line.startsWith(DOCTYPE_HANDLE)) {
 			document.addDoctype(doctypeHandler.processDocType(line.substring(3)));
-		} else if (handle == COMMENT) {
-			Pair<String, String> parts = SharedUtils.balance(line, '[', ']');
-			addNode(lineIndent, new CommentNode(parts.getValue0(), parts.getValue1()));
-		} else if (handle == DIV_CLASS || handle == DIV_ID) {
-			addNode(lineIndent, parseDiv(line));
-		} else if (handle == ELEMENT) {
-			addNode(lineIndent, parseTag(line));
+			/*
+      when ESCAPE; push plain(text[1..-1])
+			*/
 		} else {
-			addNode(lineIndent, new PlainNode(line));
+			addNode(new PlainNode(line));
 		}
 		
 	}
@@ -122,10 +149,9 @@ public class Parser implements ParserConstants {
 	}
 	
 	private void parseClassAndId(Map<String, Text> attributes, String sattr) {
-		/*
 		if (Pattern.matches("[\\.#](\\.|#|\\z)", sattr)) {
-			throw new SyntaxException("Classes and ids must have values: " + line);
-		}*/
+			throw new ParseException("Classes and ids must have values: " + sattr);
+		}
 		String className = null;
 		Matcher matcher = Pattern.compile("([#.])([-:_a-zA-Z0-9]+)").matcher(sattr);
 		while (matcher.find()) {
@@ -139,7 +165,7 @@ public class Parser implements ParserConstants {
 			}
 		}
 		if (!matcher.hitEnd()) {
-			throw new SyntaxException("Wrong id/class syntax: " + sattr);
+			throw new ParseException("Wrong id/class syntax: " + sattr);
 		}
 		if (className != null) {
 			attributes.put("class", new Text(className));
@@ -152,7 +178,7 @@ public class Parser implements ParserConstants {
 		
 		Matcher matcher = Pattern.compile("%([-:\\w]+)([-:\\w\\.\\#]*)(.*)").matcher(line);
 		if (!matcher.matches()) {
-			throw new SyntaxException("Invalid tag: \"" + line + "\"");
+			throw new ParseException("Invalid tag: \"" + line + "\"");
 		}
 		String tagName = matcher.group(1);
 		String sattr = matcher.group(2);
@@ -166,9 +192,7 @@ public class Parser implements ParserConstants {
 				//attributes = result.getValue0();
 				rest = result.getValue1();
 			} else if (c == '{') {
-				Pair<Map<String, Text>, String> result = parseOldAttributes(rest);
-				//attributes = result.getValue0();
-				rest = result.getValue1();
+				rest = parseOldAttributes(attributes, rest);
 			} else if (c == '[') {
 				Pair<String, String> result = SharedUtils.balance(rest, '[', ']');
 				objectRef = result.getValue0();
@@ -193,85 +217,7 @@ public class Parser implements ParserConstants {
 			}
 		}
 		return tag;
-		/*
-		     def tag(line)
-      tag_name, attributes, attributes_hashes, object_ref, nuke_outer_whitespace,
-        nuke_inner_whitespace, action, value, last_line = parse_tag(line)
-
-      preserve_tag = @options[:preserve].include?(tag_name)
-      nuke_inner_whitespace ||= preserve_tag
-      preserve_tag = false if @options[:ugly]
-      escape_html = (action == '&' || (action != '!' && @options[:escape_html]))
-
-      case action
-      when '/'; self_closing = true
-      when '~'; parse = preserve_script = true
-      when '='
-        parse = true
-        if value[0] == ?=
-          value = unescape_interpolation(value[1..-1].strip, escape_html)
-          escape_html = false
-        end
-      when '&', '!'
-        if value[0] == ?= || value[0] == ?~
-          parse = true
-          preserve_script = (value[0] == ?~)
-          if value[1] == ?=
-            value = unescape_interpolation(value[2..-1].strip, escape_html)
-            escape_html = false
-          else
-            value = value[1..-1].strip
-          end
-        elsif contains_interpolation?(value)
-          value = unescape_interpolation(value, escape_html)
-          parse = true
-          escape_html = false
-        end
-      else
-        if contains_interpolation?(value)
-          value = unescape_interpolation(value, escape_html)
-          parse = true
-          escape_html = false
-        end
-      end
-
-      attributes = Parser.parse_class_and_id(attributes)
-      attributes_list = []
-
-      if attributes_hashes[:new]
-        static_attributes, attributes_hash = attributes_hashes[:new]
-        Buffer.merge_attrs(attributes, static_attributes) if static_attributes
-        attributes_list << attributes_hash
-      end
-
-      if attributes_hashes[:old]
-        static_attributes = parse_static_hash(attributes_hashes[:old])
-        Buffer.merge_attrs(attributes, static_attributes) if static_attributes
-        attributes_list << attributes_hashes[:old] unless static_attributes || @options[:suppress_eval]
-      end
-
-      attributes_list.compact!
-
-      raise SyntaxError.new("Illegal nesting: nesting within a self-closing tag is illegal.", @next_line.index) if block_opened? && self_closing
-      raise SyntaxError.new("There's no Ruby code for #{action} to evaluate.", last_line - 1) if parse && value.empty?
-      raise SyntaxError.new("Self-closing tags can't have content.", last_line - 1) if self_closing && !value.empty?
-
-      if block_opened? && !value.empty? && !is_ruby_multiline?(value)
-        raise SyntaxError.new("Illegal nesting: content can't be both given on the same line as %#{tag_name} and nested within it.", @next_line.index)
-      end
-
-      self_closing ||= !!(!block_opened? && value.empty? && @options[:autoclose].any? {|t| t === tag_name})
-      value = nil if value.empty? && (block_opened? || self_closing)
-      value = handle_ruby_multiline(value) if parse
-
-      ParseNode.new(:tag, @index, :name => tag_name, :attributes => attributes,
-        :attributes_hashes => attributes_list, :self_closing => self_closing,
-        :nuke_inner_whitespace => nuke_inner_whitespace,
-        :nuke_outer_whitespace => nuke_outer_whitespace, :object_ref => object_ref,
-        :escape_html => escape_html, :preserve_tag => preserve_tag,
-        :preserve_script => preserve_script, :parse => parse, :value => value)
-    end
-		 */
+		
 	}
 	
 	private Pair<Map<String, Text>, String> parseNewAttributes(String line) {
@@ -280,50 +226,6 @@ public class Parser implements ParserConstants {
 		while (true) {
 			Pair<String, Text> nameValue = parseNewAttribute(matcher);
 		}
-		/*
-
-    def parse_new_attributes(line)
-      line = line.dup
-      scanner = StringScanner.new(line)
-      last_line = @index
-      attributes = {}
-
-      scanner.scan(/\(\s* /)
-      loop do
-        name, value = parse_new_attribute(scanner)
-        break if name.nil?
-
-        if name == false
-          text = (Haml::Shared.balance(line, ?(, ?)) || [line]).first
-          raise Haml::SyntaxError.new("Invalid attribute list: #{text.inspect}.", last_line - 1)
-        end
-        attributes[name] = value
-        scanner.scan(/\s* /)
-
-        if scanner.eos?
-          line << " " << @next_line.text
-          last_line += 1
-          next_line
-          scanner.scan(/\s* /)
-        end
-      end
-
-      static_attributes = {}
-      dynamic_attributes = "{"
-      attributes.each do |name, (type, val)|
-        if type == :static
-          static_attributes[name] = val
-        else
-          dynamic_attributes << inspect_obj(name) << " => " << val << ","
-        end
-      end
-      dynamic_attributes << "}"
-      dynamic_attributes = nil if dynamic_attributes == "{}"
-
-      return [static_attributes, dynamic_attributes], scanner.rest, last_line
-    end
-
-		 */
 	}
 
 	private Pair<String, Text> parseNewAttribute(Matcher matcher) {
@@ -367,46 +269,56 @@ public class Parser implements ParserConstants {
 		return Pair.with(name, new Text(value));
 	}	
 	
-	private Pair<Map<String, Text>, String> parseOldAttributes(String line) {
-		/*
-		 		     def parse_old_attributes(line)
-      line = line.dup
-      last_line = @index
+	// parse_old_attributes
+	private String parseOldAttributes(Map<String, Text> attributes, String line) {
+		while (true) {
+			try {
+				Pair<String, String> parsed = SharedUtils.balance(line, '{', '}');
+				String attributesHash = substring(parsed.getValue0(), 1, -1);
 
-      begin
-        attributes_hash, rest = balance(line, ?{, ?})
-      rescue SyntaxError => e
-        if line.strip[-1] == ?, && e.message == "Unbalanced brackets."
-          line << "\n" << @next_line.text
-          last_line += 1
-          next_line
-          retry
-        end
-
-        raise e
-      end
-
-      attributes_hash = attributes_hash[1...-1] if attributes_hash
-      return attributes_hash, rest, last_line
-    end
-
-		 */
-		Matcher matcher = Pattern.compile("\\(\\s*").matcher(line);
-		throw new UnsupportedOperationException();
+				// parse_static_hash
+				Matcher scanner = SPACES.matcher(attributesHash);
+				scanner.find();
+				while (!scanner.hitEnd()) {
+					String key = null;
+					String value = null;
+					if (scan(scanner, LITERAL_VALUE_REGEX)) {
+						key = scanner.group();
+						;
+						if (scan(scanner, MAP_ATTRIBUTE_SEPARATOR) && scan(scanner, LITERAL_VALUE_REGEX)) {
+							value = scanner.group();
+							scan(scanner, "\\s*(?:,|$)\\s*");
+						}
+						
+					}
+					if (key == null || value == null) {
+						throw new ParseException("Malformed attributes: " + line);
+					}
+					
+					// attributes[eval(key).to_s] = eval(value).to_s
+					attributes.put(key, new Text(value));
+				}
+				
+				return parsed.getValue1();
+			} catch (UnbalancedContentsException e) {
+				line += '\n' + lines.nextLine();
+			}
+		}
 	}
 
-	private void addNode(int newIndentLevel, Node node) {
-		if (newIndentLevel > currentIndentLevel) {
-			if (newIndentLevel > currentIndentLevel + 1) {
-				throw new InconsistentIndentationException("The line was indented " + (newIndentLevel - currentIndentLevel) + " levels deeper than the previous line.");
+	private void addNode(Node node) {
+		int newIndentLevel = lines.getCurrentIndentation();
+		if (newIndentLevel > lastIndentLevel) {
+			if (newIndentLevel > lastIndentLevel + 1) {
+				throw new InconsistentIndentationException("The line was indented " + (newIndentLevel - lastIndentLevel) + " levels deeper than the previous line.");
 			}
-			currentIndentLevel++;
+			lastIndentLevel++;
 			currentNode.addChild(node);
-		} else if (newIndentLevel == currentIndentLevel) {
+		} else if (newIndentLevel == lastIndentLevel) {
 			currentNode.getParent().addChild(node);
 		} else {
-			while (currentIndentLevel > 0) {
-				currentIndentLevel--;
+			while (lastIndentLevel > 0) {
+				lastIndentLevel--;
 				currentNode = currentNode.getParent();
 			}
 			currentNode.getParent().addChild(node);
@@ -422,6 +334,9 @@ public class Parser implements ParserConstants {
 	 * Changes the pattern in a Matcher and scans to the next position
 	 */
 	private boolean scan(Matcher matcher, String regex) {
-		return matcher.usePattern(Pattern.compile(regex)).find();
+		return scan(matcher, Pattern.compile(regex));
+	}
+	private boolean scan(Matcher matcher, Pattern regex) {
+		return matcher.usePattern(regex).find();
 	}
 }

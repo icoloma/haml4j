@@ -89,4 +89,28 @@ public class SharedUtils {
 		throw new UnbalancedContentsException("Unbalanced contents: missing " + ( count > 0? stop : start));
 	}
 	
+	/**
+	 * substring, Rails style
+	 * @param s the string to get a piece from
+	 * @param from the starting character, inclusive
+	 * @param until the end character. If less than zero, it will start from the end
+	 * @return
+	 */
+	public static String substring(String s, int from, int until) {
+		int l = s.length();
+		if (from > l) {
+			return "";
+		}
+		if (until > l) {
+			until = l;
+		}
+		if (until < 0) {
+			until = l + until;
+		}
+		if (until <= from) {
+			return "";
+		}
+		return s.substring(from, until);
+	}
+	
 }

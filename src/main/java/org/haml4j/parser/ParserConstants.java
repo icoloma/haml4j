@@ -4,34 +4,34 @@ import java.util.regex.Pattern;
 
 public interface ParserConstants {
 
-    /** Designates an XHTML/XML element (IMPLEMENTED) */
+    /** Designates an XHTML/XML element */
     public static final char ELEMENT = '%';
 
-    /** Designates a `<div>` element with the given class (IMPLEMENTED) */
+    /** Designates a `<div>` element with the given class */
     public static final char DIV_CLASS = '.';
 
     /** Designates a `<div>` element with the given id */
     public static final char DIV_ID = '#';
 
-    /** Designates an XHTML/XML comment (IMPLEMENTED) */
+    /** Designates an XHTML/XML comment */
     public static final char COMMENT = '/';
 
     /** Designates an XHTML doctype or script that is never HTML-escaped */
     public static final char DOCTYPE = '!';
 
-    /** Designates script, the result of which is output (IMPLEMENTED) */
+    /** Designates script, the result of which is output */
     public static final char SCRIPT = '=';
 
     /** Designates script that is always HTML-escaped */
     public static final char SANITIZE = '&';
 
-    /** Designates script, the result of which is flattened and output (IMPLEMENTED) */
+    /** Designates script, the result of which is flattened and output */
     public static final char FLAT_SCRIPT = '~';
 
-    /** Designates script which is run but not output (IMPLEMENTED) */
+    /** Designates script which is run but not output */
     public static final char SILENT_SCRIPT = '-';
 
-    /** When following SILENT_SCRIPT, designates a comment that is not output (IMPLEMENTED) */
+    /** When following SILENT_SCRIPT, designates a comment that is not output */
     public static final String SILENT_COMMENT = "-#";
 
     /** Designates a non-parsed line */
@@ -43,18 +43,23 @@ public interface ParserConstants {
     /** Designates a non-parsed line. Not actually a character */
     public static final int PLAIN_TEXT = -1;
     
-    /** The value of the character that designates that a line is part of a multiline string. (IMPLEMENTED) */
+    /** The value of the character that designates that a line is part of a multiline string. */
     public static final int MULTILINE_CHAR_VALUE = '|';
 
-    /** The starts of a doctype expression (IMPLEMENTED) */
+    /** The starts of a doctype expression */
     public static final String DOCTYPE_HANDLE = "!!!";
     
-    /** Reserved word: if (IMPLEMENTED) */
+    /** Reserved word: if */
     public static final Pattern RW_IF = Pattern.compile("-\\s*if\\s+");
     
-    /** Reserved word: else (IMPLEMENTED) */
+    /** Reserved word: else */
     public static final Pattern RW_ELSE = Pattern.compile("-\\s*else\\s+");
     
-    /** TBD: elif, when, case, ensure */
+    /** The Regex that matches a literal string or symbol value */
+    public static final Pattern LITERAL_VALUE_REGEX = Pattern.compile(":(\\w+)"); //Pattern.compile(":(\\w*)|([\"'])((?![\\\\#]|\\2).|\\\\.)*\\2");
+    
+    public static final Pattern MAP_ATTRIBUTE_SEPARATOR = Pattern.compile("\\s*=>\\s*");
+
+    public static final Pattern SPACES = Pattern.compile("\\s*");
     
 }

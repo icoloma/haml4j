@@ -2,7 +2,7 @@ package org.haml4j.parser;
 
 import java.util.Iterator;
 
-import org.haml4j.exception.SyntaxException;
+import org.haml4j.exception.ParseException;
 
 import com.google.common.base.Splitter;
 
@@ -32,7 +32,7 @@ public class XmlDoctypeHandler implements DoctypeHandler {
 		} else if (head.equals("5")) {
 			return "<!DOCTYPE html>";
 		} else {
-			throw new SyntaxException("Unrecognized doctype: " + head);
+			throw new ParseException("Unrecognized doctype: " + head);
 		}
 	}
 

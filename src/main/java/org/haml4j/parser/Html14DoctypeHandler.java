@@ -1,6 +1,6 @@
 package org.haml4j.parser;
 
-import org.haml4j.exception.SyntaxException;
+import org.haml4j.exception.ParseException;
 
 
 public class Html14DoctypeHandler implements DoctypeHandler {
@@ -15,7 +15,7 @@ public class Html14DoctypeHandler implements DoctypeHandler {
 		} else if (doctype.equals("Frameset")) {
 			return newDocType("-//W3C//DTD HTML 4.01 Frameset//EN", "http://www.w3.org/TR/html4/frameset.dtd");
 		} else {
-			throw new SyntaxException("Unrecognized doctype: " + doctype);
+			throw new ParseException("Unrecognized doctype: " + doctype);
 		}
 	}
 
